@@ -7,7 +7,9 @@ musicArtista = wrapper.querySelector(".song-details .artista"),
 mainAudio = wrapper.querySelector("#main-audio"),
 playPauseBtn = wrapper.querySelector(".play-pause"),
 prevBtn = wrapper.querySelector("#prev"),
-nextBtn = wrapper.querySelector("#next");
+nextBtn = wrapper.querySelector("#next"),
+progressArea = wrapper.querySelector(".progress-area"),
+progressBar = wrapper.querySelector(".progress-bar");
 
 let musicIndex = 1;
 
@@ -40,6 +42,7 @@ function pauseMusic(){
 //função próxima música
 function nextMusic(){
     musicIndex++;
+    musicIndex > allMusic.length ? musicIndex = 1 : musicIndex = musicIndex;
     loadMusic(musicIndex);
     playMusic();
 }
@@ -47,6 +50,7 @@ function nextMusic(){
 //função música anterior
 function prevMusic(){
     musicIndex--;
+    musicIndex < 1 ? musicIndex = allMusic.length : musicIndex = musicIndex;
     loadMusic(musicIndex);
     playMusic();
 }
@@ -66,4 +70,43 @@ nextBtn.addEventListener("click", ()=>{
 //evento de música anterior
 prevBtn.addEventListener("click", ()=> {
     prevMusic(); // ligação com a função música anterior
+});
+
+//atualizar a largura da barra de progresso de acordo com o tempo atual da música
+mainAudio.addEventListener("timeupdate", (e)=>{
+    const currentTime = e.target.currentTime; // obtendo o tempo atual da música
+    const duration = e.target.duration; // obtendo a duração total da música
+    let progressWidth = (currentTime / duration) * 100;
+    progressBar.style.width = `${progressWidth}%`;
+
+    let musicCurrentTime = wrapper.querySelector(".current"),
+    musicDuration = wrapper.querySelector(".duration");
+
+    mainAudio.addEventListener("loadeddata", ()=>{
+        // atualizar duração total da música
+        let audioDuration = mainAudio.duration;
+        let totalMin = Math.floor(audioDuration / 60);
+        let totalSeg = Math.floor(audioDuration % 60);
+        if(totalSeg < 10){ // Adicionando 0 se o segundo for menor que 10.
+            totalSeg = `0${totalSeg}`;
+        }
+        musicDuration.innerText = `${totalMin}:${totalSeg}`;
+    });
+
+    // atualizar duração corrente da música
+    let currentMin = Math.floor(currentTime / 60);
+    let currentSeg = Math.floor(currentTime % 60);
+    if(currentSeg < 10){ // Adicionando 0 se o segundo for menor que 10.
+        currentSeg = `0${currentSeg}`;
+    }
+    musicCurrentTime.innerText = `${currentMin}:${currentSeg}`;
+});
+
+//vamos atualizar a hora atual da música de acordo com a largura da barra de progresso
+progressArea.addEventListener("click", (e)=>{
+    let progressWidthval = progressArea.clientWidth; // obtendo largura da barra de progresso
+    let clickedOffSetX = e.offsetX; // obtendo offset x valor
+    let songDuration = mainAudio.duration; // obtendo a duração total da música
+
+    mainAudio.currentTime = (clickedOffSetX / progressWidthval) * songDuration;
 });
